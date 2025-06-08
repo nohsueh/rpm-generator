@@ -81,7 +81,7 @@ class Matrix:
     def make(cls,
              matrix_type: MatrixType,
              ruleset: Ruleset = None,
-             n_alternatives: int = 0):
+             n_alternatives: int = 0) -> "Matrix":
         return getattr(cls, matrix_type.name.lower())(
             cls.get_attribute_bounds(matrix_type), ruleset, n_alternatives)
 
