@@ -36,6 +36,6 @@ for index, matrix_type in enumerate(matrix_types):
     rpm = Matrix.make(matrix_type=matrix_type, n_alternatives=6)
     os.makedirs(f"./output/{index}_{matrix_type.name}/{date}", exist_ok=True)
     puzzle_name = "rpm"
-    rpm.save(path=f"./output/{index}_{matrix_type.name}/{date}", puzzle_name=puzzle_name, image_size=1024)
+    rpm.save(path=f"./output/{index}_{matrix_type.name}/{date}", puzzle_name=puzzle_name, image_size=1024, line_thickness=20)
 
     sleep(1)
