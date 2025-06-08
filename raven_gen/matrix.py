@@ -478,7 +478,7 @@ class Matrix:
              path,
              puzzle_name,
              background_color=255,
-             image_size=768,
+             image_size=1024,
              line_thickness=3,
              shape_border_thickness=2):
         image_size, background_color, line_thickness, shape_border_thickness = \
@@ -494,7 +494,7 @@ class Matrix:
                                  line_thickness, shape_border_thickness)
         question_img = img.copy()
         # Crop to only show the third row, third column cell
-        img = img.crop((x0 - line_thickness, y0 - line_thickness, x0 + cell_size - 3 * line_thickness, y0 + cell_size - 3 * line_thickness))
+        img = img.crop((x0, y0, x0 + cell_size - 3 * line_thickness, y0 + cell_size - 3 * line_thickness))
         img.save(os.path.join(path, puzzle_name + "_answer.png"))
 
         # Save the question image (with bottom-right cell replaced by "?")
@@ -532,5 +532,5 @@ class Matrix:
                                      shape_border_thickness)
 
             # Crop to only show the third row, third column cell
-            img = img.crop((x0 - line_thickness, y0 - line_thickness, x0 + cell_size - 3 * line_thickness, y0 + cell_size - 3 * line_thickness))
+            img = img.crop((x0, y0, x0 + cell_size - 3 * line_thickness, y0 + cell_size - 3 * line_thickness))
             img.save(os.path.join(path, puzzle_name + f"_alternative_{i}.png"))
