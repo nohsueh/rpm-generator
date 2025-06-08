@@ -4,7 +4,7 @@ import copy, os, math
 
 import numpy as np
 from scipy.special import comb
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from .component import make_component, ComponentType, LayoutType, AttributeHistory
 from .panel import Panel, prune
@@ -485,19 +485,19 @@ class Matrix:
             int(abs(image_size)), int(abs(background_color)), int(abs(line_thickness)), int(abs(shape_border_thickness))
         assert (image_size != 0 and background_color <= 255)
         
-        # Save the answer image
-        img = self.generate_matrix(self.answer, background_color, image_size,
-                                 line_thickness, shape_border_thickness)
-        img.save(os.path.join(path, puzzle_name + "_answer.png"))
-        
-        # Save the question image (with bottom-right cell replaced by "?")
-        question_img = img.copy()
-        from PIL import ImageDraw, ImageFont
-
         # Calculate the position of the bottom-right cell
         cell_size = image_size // 3
         x0, y0 = 2 * (cell_size + line_thickness), 2 * (cell_size + line_thickness)  # Third row, third column (0-based index 2,2)
-        
+
+        # Save the answer image
+        img = self.generate_matrix(self.answer, background_color, image_size,
+                                 line_thickness, shape_border_thickness)
+        question_img = img.copy()
+        # Crop to only show the third row, third column cell
+        img = img.crop((x0 - line_thickness, y0 - line_thickness, x0 + cell_size - 3 * line_thickness, y0 + cell_size - 3 * line_thickness))
+        img.save(os.path.join(path, puzzle_name + "_answer.png"))
+
+        # Save the question image (with bottom-right cell replaced by "?")
         # Draw a white rectangle to clear the cell
         draw = ImageDraw.Draw(question_img)
         draw.rectangle([x0, y0, x0 + cell_size, y0 + cell_size], fill=background_color)
