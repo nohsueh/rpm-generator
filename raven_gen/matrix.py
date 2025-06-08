@@ -484,11 +484,51 @@ class Matrix:
         image_size, background_color, line_thickness, shape_border_thickness = \
             int(abs(image_size)), int(abs(background_color)), int(abs(line_thickness)), int(abs(shape_border_thickness))
         assert (image_size != 0 and background_color <= 255)
+        
+        # Save the answer image
         img = self.generate_matrix(self.answer, background_color, image_size,
-                                   line_thickness, shape_border_thickness)
+                                 line_thickness, shape_border_thickness)
         img.save(os.path.join(path, puzzle_name + "_answer.png"))
+        
+        # Save the question image (with bottom-right cell replaced by "?")
+        question_img = img.copy()
+        from PIL import ImageDraw, ImageFont
+        import numpy as np
+        
+        # Calculate the position of the bottom-right cell
+        cell_size = image_size // 3
+        x0, y0 = 2 * (cell_size + line_thickness), 2 * (cell_size + line_thickness)  # Third row, third column (0-based index 2,2)
+        
+        # Draw a white rectangle to clear the cell
+        draw = ImageDraw.Draw(question_img)
+        draw.rectangle([x0, y0, x0 + cell_size, y0 + cell_size], fill=background_color)
+        
+        # Add a question mark
+        try:
+            # Try to use a larger font if available
+            font_size = cell_size // 2
+            font = ImageFont.truetype("arial.ttf", font_size)
+        except:
+            # Fallback to default font
+            font = ImageFont.load_default()
+            
+        # Calculate text position to center it in the cell
+        text = "?"
+        text_bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        text_x = x0 + (cell_size - text_width) // 2
+        text_y = y0 + (cell_size - text_height) // 2
+        
+        # Draw the question mark
+        draw.text((text_x, text_y), text, fill=0, font=font)
+        
+        # Save the question image
+        question_img.save(os.path.join(path, puzzle_name + "_question.png"))
+        
+        # Save alternative answers
         for i, alternative in enumerate(self.alternatives):
             img = self.generate_matrix(alternative, background_color,
-                                       image_size, line_thickness,
-                                       shape_border_thickness)
+                                     image_size, line_thickness,
+                                     shape_border_thickness)
             img.save(os.path.join(path, puzzle_name + f"_alternative_{i}.png"))
