@@ -34,8 +34,8 @@ date = datetime.now().strftime("%Y%m%d_%H%M%S")
 for index, matrix_type in enumerate(matrix_types):
     try:
         rpm = Matrix.make(matrix_type=matrix_type, n_alternatives=5)
-        os.makedirs(f"./output/{index}_{matrix_type.name}/{date}", exist_ok=True)
-        rpm.save(path=f"./output/{index}_{matrix_type.name}/{date}", puzzle_name="rpm")
+        os.makedirs(f"./output/{date}/{index}_{matrix_type.name}", exist_ok=True)
+        rpm.save(path=f"./output/{date}/{index}_{matrix_type.name}", puzzle_name="rpm")
     except Exception as e:
         print(e)
         continue
