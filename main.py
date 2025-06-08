@@ -39,4 +39,3 @@ for index, matrix_type in enumerate(matrix_types):
     except Exception as e:
         print(e)
         continue
-
