@@ -530,4 +530,7 @@ class Matrix:
             img = self.generate_matrix(alternative, background_color,
                                      image_size, line_thickness,
                                      shape_border_thickness)
+
+            # Crop to only show the third row, third column cell
+            img = img.crop((x0, y0, x0 + cell_size, y0 + cell_size))
             img.save(os.path.join(path, puzzle_name + f"_alternative_{i}.png"))
