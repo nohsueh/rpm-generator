@@ -478,7 +478,7 @@ class Matrix:
              path,
              puzzle_name,
              background_color=255,
-             image_size=480,
+             image_size=768,
              line_thickness=3,
              shape_border_thickness=2):
         image_size, background_color, line_thickness, shape_border_thickness = \
