@@ -516,12 +516,12 @@ class Matrix:
         text_bbox = draw.textbbox((0, 0), text, font=font)
         text_width = text_bbox[2] - text_bbox[0]
         text_height = text_bbox[3] - text_bbox[1]
-        text_x = x0 + (cell_size - text_width) // 2
-        text_y = y0 + (cell_size - text_height) // 2
-        
+        text_x = x0 - 3 * line_thickness + (cell_size - text_width) // 2
+        text_y = y0 - 3 * line_thickness + (cell_size - text_height) // 2
+
         # Draw the question mark
         draw.text((text_x, text_y), text, fill=0, font=font)
-        
+
         # Save the question image
         question_img.save(os.path.join(path, puzzle_name + "_question.png"))
         
@@ -532,5 +532,5 @@ class Matrix:
                                      shape_border_thickness)
 
             # Crop to only show the third row, third column cell
-            img = img.crop((x0, y0, x0 + cell_size, y0 + cell_size))
+            img = img.crop((x0, y0, x0 + cell_size - 3 * line_thickness, y0 + cell_size - 3 * line_thickness))
             img.save(os.path.join(path, puzzle_name + f"_alternative_{i}.png"))
