@@ -516,8 +516,8 @@ class Matrix:
         text_bbox = draw.textbbox((0, 0), text, font=font)
         text_width = text_bbox[2] - text_bbox[0]
         text_height = text_bbox[3] - text_bbox[1]
-        text_x = x0 - 3 * line_thickness + (cell_size - text_width) // 2
-        text_y = y0 - 3 * line_thickness + (cell_size - text_height) // 2
+        text_x = x0 - 2 * line_thickness + (cell_size - text_width) // 2
+        text_y = y0 - 2 * line_thickness + (cell_size - text_height) // 2
 
         # Draw the question mark
         draw.text((text_x, text_y), text, fill=0, font=font)
