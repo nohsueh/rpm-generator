@@ -1,14 +1,21 @@
 from __future__ import annotations
+
 import copy
 from dataclasses import dataclass, field
-from typing import List, Union, Dict, Set
 from enum import Enum, auto
+from typing import Dict, List, Set, Union
 
 import numpy as np
 from scipy.special import comb
 
-from .attribute import (AttributeType, Uniformity, Configuration, PositionType,
-                        AngularPosition, PlanarPosition)
+from .attribute import (
+    AngularPosition,
+    AttributeType,
+    Configuration,
+    PlanarPosition,
+    PositionType,
+    Uniformity,
+)
 from .entity import Entity
 
 
@@ -52,9 +59,9 @@ class AttributeHistory:
         self.color = []
         self.angle = []
         for i in range(constraints.number.min + 1, constraints.number.max + 2):
-            self.position[i] = PositionHistory(available=comb(
-                constraints.positions.shape[0], i),
-                                               sampled=[])
+            self.position[i] = PositionHistory(
+                available=comb(constraints.positions.shape[0], i), sampled=[]
+            )
 
 
 @dataclass
@@ -121,11 +128,9 @@ class Component:
         for entity, bbox in zip(self.entities, self.config.position.value):
             entity.bbox = bbox
 
-    def sample(self,
-               sample_position=False,
-               sample_number=False,
-               carryover=True,
-               uniform=None):
+    def sample(
+        self, sample_position=False, sample_number=False, carryover=True, uniform=None
+    ):
         if sample_position or sample_number:
             if sample_number:
                 self.config.number.sample(self.constraints)
@@ -137,9 +142,11 @@ class Component:
                 self.entities = [self.entities[0]]
             else:
                 self.entities = [
-                    Entity(name=str(0),
-                           bbox=self.config.position.value[0],
-                           constraints=self.constraints)
+                    Entity(
+                        name=str(0),
+                        bbox=self.config.position.value[0],
+                        constraints=self.constraints,
+                    )
                 ]
             for i, bbox in enumerate(self.config.position.value[1:]):
                 entity = copy.deepcopy(self.entities[0])
@@ -154,52 +161,61 @@ class Component:
 
     def sample_unique(self, attr, history, initial_constraints):
         if attr is AttributeType.NUMBER:
-            self.config.sample_unique(initial_constraints,
-                                      history,
-                                      inplace=True)
+            self.config.sample_unique(initial_constraints, history, inplace=True)
             self.sample(carryover=False)
         elif attr is AttributeType.POSITION:
-            self.config.position.sample_unique(self.config.number.value,
-                                               history,
-                                               inplace=True)
+            self.config.position.sample_unique(
+                self.config.number.value, history, inplace=True
+            )
             self.set_position()
-        elif attr is AttributeType.ANGLE or \
-                attr is AttributeType.UNIFORMITY:
+        elif attr is AttributeType.ANGLE or attr is AttributeType.UNIFORMITY:
             raise ValueError(f"unsupported operation attribute: {attr!s}")
         elif attr in AttributeType:
             if self.uniformity.value:
-                self.attr(attr).sample_unique(initial_constraints,
-                                              history,
-                                              inplace=True)
+                self.attr(attr).sample_unique(
+                    initial_constraints, history, inplace=True
+                )
                 self.make_uniform(attr)
             else:
                 for entity in self.entities:
                     entity_attr = getattr(entity, attr.name.lower())
-                    entity_attr.sample_unique(initial_constraints,
-                                              history,
-                                              inplace=True)
+                    entity_attr.sample_unique(
+                        initial_constraints, history, inplace=True
+                    )
         else:
             raise ValueError("unsupported operation")
 
 
-def make_component(component_type, layout_type, position_type, positions, *,
-                   number_min, number_max, shape_min, shape_max, size_min,
-                   size_max, color_min, color_max, angle_min, angle_max,
-                   uniformity_min, uniformity_max):
-    return Component(component_type=component_type,
-                     layout_type=layout_type,
-                     constraints=Constraints(number=Bounds(min=number_min,
-                                                           max=number_max),
-                                             shape=Bounds(min=shape_min,
-                                                          max=shape_max),
-                                             size=Bounds(min=size_min,
-                                                         max=size_max),
-                                             color=Bounds(min=color_min,
-                                                          max=color_max),
-                                             angle=Bounds(min=angle_min,
-                                                          max=angle_max),
-                                             uniformity=Bounds(
-                                                 min=uniformity_min,
-                                                 max=uniformity_max),
-                                             position_type=position_type,
-                                             positions=positions))
+def make_component(
+    component_type,
+    layout_type,
+    position_type,
+    positions,
+    *,
+    number_min,
+    number_max,
+    shape_min,
+    shape_max,
+    size_min,
+    size_max,
+    color_min,
+    color_max,
+    angle_min,
+    angle_max,
+    uniformity_min,
+    uniformity_max,
+):
+    return Component(
+        component_type=component_type,
+        layout_type=layout_type,
+        constraints=Constraints(
+            number=Bounds(min=number_min, max=number_max),
+            shape=Bounds(min=shape_min, max=shape_max),
+            size=Bounds(min=size_min, max=size_max),
+            color=Bounds(min=color_min, max=color_max),
+            angle=Bounds(min=angle_min, max=angle_max),
+            uniformity=Bounds(min=uniformity_min, max=uniformity_max),
+            position_type=position_type,
+            positions=positions,
+        ),
+    )

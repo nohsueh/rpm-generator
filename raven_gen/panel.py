@@ -1,5 +1,5 @@
-from typing import Optional
 import copy
+from typing import Optional
 
 from .attribute import AttributeType
 from .component import Component
@@ -8,24 +8,24 @@ from .rule import Rules, RuleType
 
 class Panel:
 
-    def __init__(self,
-                 component_1: Component,
-                 component_2: Optional[Component] = None):
+    def __init__(self, component_1: Component, component_2: Optional[Component] = None):
 
         self.component_1 = component_1
         if component_2:
             self.component_2 = component_2
             self.components = (self.component_1, self.component_2)
         else:
-            self.components = (self.component_1, )
+            self.components = (self.component_1,)
 
     def __str__(self):
         s = f"{self.component_1.config}\n{self.component_1.uniformity}\n\n"
         for entity in self.component_1.entities:
             s += f"{entity!r}\n"
         if hasattr(self, "component_2"):
-            s += f"\n\t----------- \\\\ {self.component_1.component_type.name} > {self.component_1.layout_type.name} // --- " + \
-                 f"// {self.component_2.component_type.name} > {self.component_2.layout_type.name} \\\\ -----------\n\n"
+            s += (
+                f"\n\t----------- \\\\ {self.component_1.component_type.name} > {self.component_1.layout_type.name} // --- "
+                + f"// {self.component_2.component_type.name} > {self.component_2.layout_type.name} \\\\ -----------\n\n"
+            )
             s += f"{self.component_2.config}\n{self.component_2.uniformity}\n"
             for entity in self.component_2.entities:
                 s += f"{entity!r}\n"
@@ -51,16 +51,21 @@ def prune(base: Panel, rules: Rules) -> Optional[Panel]:
     for component, component_rules in zip(pruned.components, rules):
         del component.entities[:]
         for rule in component_rules.all:
-            if rule.attr in AttributeType and \
-                    rule.attr is not AttributeType.ANGLE and \
-                    rule.attr is not AttributeType.UNIFORMITY:
-                if rule.attr is AttributeType.NUMBER or rule.attr is AttributeType.POSITION or \
-                    rule.attr is AttributeType.CONFIGURATION:
-                    bounds = getattr(component.constraints,
-                                     AttributeType.NUMBER.name.lower())
+            if (
+                rule.attr in AttributeType
+                and rule.attr is not AttributeType.ANGLE
+                and rule.attr is not AttributeType.UNIFORMITY
+            ):
+                if (
+                    rule.attr is AttributeType.NUMBER
+                    or rule.attr is AttributeType.POSITION
+                    or rule.attr is AttributeType.CONFIGURATION
+                ):
+                    bounds = getattr(
+                        component.constraints, AttributeType.NUMBER.name.lower()
+                    )
                 else:
-                    bounds = getattr(component.constraints,
-                                     rule.attr.name.lower())
+                    bounds = getattr(component.constraints, rule.attr.name.lower())
                 initial_min, initial_max = bounds.min, bounds.max
                 if rule.name is RuleType.PROGRESSION:
                     if rule.attr is AttributeType.POSITION:
@@ -79,7 +84,10 @@ def prune(base: Panel, rules: Rules) -> Optional[Panel]:
                         if rule.value <= 0:
                             bounds.min = bounds.max // 2
                         bounds.max = bounds.max - 1
-                    elif rule.attr is AttributeType.NUMBER or rule.attr is AttributeType.SIZE:
+                    elif (
+                        rule.attr is AttributeType.NUMBER
+                        or rule.attr is AttributeType.SIZE
+                    ):
                         # bounds.max >= 2 * bounds.min + 1
                         if rule.value > 0:
                             bounds.max = bounds.max - bounds.min - 1
@@ -99,8 +107,7 @@ def prune(base: Panel, rules: Rules) -> Optional[Panel]:
                         # n choose k entity arrangements in layout with n slots;
                         # `value_of_setting(bounds.min)` >= 1 and we restrict
                         # n >= 3 and k < n so n choose k >= 3 (see Pascal's triangle).
-                        n_slots = component.config.number.value_of_setting(
-                            bounds.max)
+                        n_slots = component.config.number.value_of_setting(bounds.max)
                         if n_slots < 3:
                             return None
                         else:

@@ -1,11 +1,11 @@
-from typing import Iterable, List, Optional, Tuple
-from enum import Enum, auto
-from dataclasses import dataclass, field
 import copy
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
 
-from .attribute import AttributeType, COLOR_MIN, COLOR_MAX
+from .attribute import COLOR_MAX, COLOR_MIN, AttributeType
 from .component import Component, ComponentType, LayoutType
 
 
@@ -31,14 +31,16 @@ class Rule:
         pass
 
 
-def apply_rule(rule: Rule,
-               prev_comp: Component,
-               next_comp: Optional[Component] = None) -> Component:
+def apply_rule(
+    rule: Rule, prev_comp: Component, next_comp: Optional[Component] = None
+) -> Component:
     if next_comp is None:
         next_comp = prev_comp
-    if rule.attr is AttributeType.ANGLE or \
-            rule.attr is AttributeType.UNIFORMITY or \
-            rule.attr not in AttributeType:
+    if (
+        rule.attr is AttributeType.ANGLE
+        or rule.attr is AttributeType.UNIFORMITY
+        or rule.attr not in AttributeType
+    ):
         raise ValueError("unsupported attribute")
     elif rule.name is RuleType.CONSTANT:
         next_comp = copy.deepcopy(next_comp)
@@ -55,14 +57,15 @@ def apply_rule(rule: Rule,
             next_comp.sample(sample_position=True, carryover=False)
         elif rule.attr is AttributeType.POSITION:
             next_comp.config.position.setting = (
-                next_comp.config.position.setting +
-                rule.value) % next_comp.config.position.values.shape[0]
+                next_comp.config.position.setting + rule.value
+            ) % next_comp.config.position.values.shape[0]
             next_comp.sample(carryover=False)
         else:
             if rule.prev_is_col_0 and not prev_comp.uniformity.value:
                 prev_comp.make_uniform(rule.attr)
-            next_comp.set_uniform(rule.attr,
-                                  prev_comp.setting_of(rule.attr) + rule.value)
+            next_comp.set_uniform(
+                rule.attr, prev_comp.setting_of(rule.attr) + rule.value
+            )
     elif rule.name is RuleType.ARITHMETIC:
         if rule.attr is AttributeType.SHAPE:
             raise ValueError("unsupported attribute")
@@ -74,15 +77,15 @@ def apply_rule(rule: Rule,
                 next_comp.config.number.sample(next_comp.constraints)
             else:  # third column
                 next_comp.config.number.setting = rule.col_2_setting(
-                    prev_comp.config.number.setting)
+                    prev_comp.config.number.setting
+                )
             next_comp.sample(sample_position=True, carryover=False)
         elif rule.attr is AttributeType.POSITION:
             if rule.col_0_setting is None:  # second column
                 rule.col_0_setting = prev_comp.config.position.setting
                 rule.set_constraints_col_1(prev_comp, next_comp)
             else:  # third column
-                col_2_setting = rule.col_2_setting(
-                    prev_comp.config.position.setting)
+                col_2_setting = rule.col_2_setting(prev_comp.config.position.setting)
                 next_comp.config.number.setting = len(col_2_setting) - 1
                 next_comp.config.position.setting = np.array(col_2_setting)
             next_comp.sample(carryover=False)
@@ -96,18 +99,24 @@ def apply_rule(rule: Rule,
                 next_comp.make_uniform(rule.attr)
             else:  # third column
                 next_comp.set_uniform(
-                    rule.attr,
-                    rule.col_2_setting(prev_comp.setting_of(rule.attr)))
+                    rule.attr, rule.col_2_setting(prev_comp.setting_of(rule.attr))
+                )
         elif rule.attr is AttributeType.COLOR:
             rule.color_count += 1
             if rule.col_0_setting is None:
                 prev_setting = prev_comp.setting_of(rule.attr)
                 reset_previous = False
-                if rule.color_count == 3 and rule.color_white_alarm and \
-                    ((rule.value > 0 and prev_setting == COLOR_MAX) or
-                        (rule.value < 0 and prev_setting == COLOR_MIN)):
+                if (
+                    rule.color_count == 3
+                    and rule.color_white_alarm
+                    and (
+                        (rule.value > 0 and prev_setting == COLOR_MAX)
+                        or (rule.value < 0 and prev_setting == COLOR_MIN)
+                    )
+                ):
                     prev_comp.attr(rule.attr).sample_unique(
-                        prev_comp.constraints, prev_comp.history, inplace=True)
+                        prev_comp.constraints, prev_comp.history, inplace=True
+                    )
                     prev_setting = prev_comp.setting_of(rule.attr)
                     reset_previous = True
                 rule.col_0_setting = prev_setting
@@ -117,16 +126,20 @@ def apply_rule(rule: Rule,
                 next_comp.attr(rule.attr).sample(next_comp.constraints)
                 next_setting = next_comp.setting_of(rule.attr)
                 if rule.color_count == 1:
-                    rule.color_white_alarm = (next_setting == 0)
-                elif rule.color_count == 3 and rule.color_white_alarm and \
-                     next_setting == 0:
+                    rule.color_white_alarm = next_setting == 0
+                elif (
+                    rule.color_count == 3
+                    and rule.color_white_alarm
+                    and next_setting == 0
+                ):
                     next_comp.attr(rule.attr).sample_unique(
-                        next_comp.constraints, next_comp.history, inplace=True)
+                        next_comp.constraints, next_comp.history, inplace=True
+                    )
                 next_comp.make_uniform(rule.attr)
             else:  # third column
                 next_comp.set_uniform(
-                    rule.attr,
-                    rule.col_2_setting(prev_comp.setting_of(rule.attr)))
+                    rule.attr, rule.col_2_setting(prev_comp.setting_of(rule.attr))
+                )
     elif rule.name is RuleType.DISTRIBUTE_THREE:
         if rule.attr is AttributeType.NUMBER:
             if rule.count == 0:  # first row
@@ -134,14 +147,24 @@ def apply_rule(rule: Rule,
                     np.insert(
                         np.random.choice(
                             list(
-                                range(prev_comp.constraints.number.min,
-                                      prev_comp.config.number.setting)) +
-                            list(
-                                range(prev_comp.config.number.setting + 1,
-                                      prev_comp.constraints.number.max + 1)),
+                                range(
+                                    prev_comp.constraints.number.min,
+                                    prev_comp.config.number.setting,
+                                )
+                            )
+                            + list(
+                                range(
+                                    prev_comp.config.number.setting + 1,
+                                    prev_comp.constraints.number.max + 1,
+                                )
+                            ),
                             size=2,
-                            replace=False), 0,
-                        prev_comp.config.number.setting))
+                            replace=False,
+                        ),
+                        0,
+                        prev_comp.config.number.setting,
+                    )
+                )
                 next_comp = copy.deepcopy(next_comp)
                 next_comp.config.number.setting = rule.settings[0][1]
             else:
@@ -158,20 +181,24 @@ def apply_rule(rule: Rule,
         elif rule.attr is AttributeType.POSITION:
             if rule.count == 0:
                 rule.create_settings(
-                    np.array([
-                        prev_comp.config.position.setting,
-                        prev_comp.config.position.sample_unique(
-                            prev_comp.config.number.value, prev_comp.history),
-                        prev_comp.config.position.sample_unique(
-                            prev_comp.config.number.value, prev_comp.history)
-                    ]))
+                    np.array(
+                        [
+                            prev_comp.config.position.setting,
+                            prev_comp.config.position.sample_unique(
+                                prev_comp.config.number.value, prev_comp.history
+                            ),
+                            prev_comp.config.position.sample_unique(
+                                prev_comp.config.number.value, prev_comp.history
+                            ),
+                        ]
+                    )
+                )
                 next_comp = copy.deepcopy(next_comp)
                 next_comp.config.position.setting = rule.settings[0][1]
             else:
                 row, col = divmod(rule.count, 2)
                 if col == 0:
-                    prev_comp.config.number.setting = rule.settings[row][
-                        0].shape[0] - 1
+                    prev_comp.config.number.setting = rule.settings[row][0].shape[0] - 1
                     prev_comp.config.position.setting = rule.settings[row][0]
                     prev_comp.sample()
                     next_comp = copy.deepcopy(prev_comp)
@@ -188,11 +215,15 @@ def apply_rule(rule: Rule,
             next_comp = copy.deepcopy(next_comp)
             if rule.count == 0:
                 rule.create_settings(
-                    np.random.choice(a=range(
-                        attr_of(prev_comp.constraints).min,
-                        attr_of(prev_comp.constraints).max + 1),
-                                     size=3,
-                                     replace=False))
+                    np.random.choice(
+                        a=range(
+                            attr_of(prev_comp.constraints).min,
+                            attr_of(prev_comp.constraints).max + 1,
+                        ),
+                        size=3,
+                        replace=False,
+                    )
+                )
                 prev_comp.set_uniform(rule.attr, rule.settings[0][0])
                 next_comp.set_uniform(rule.attr, rule.settings[0][1])
             else:
@@ -262,7 +293,8 @@ class Arithmetic(Rule):
             prev_constraint = attr_of(prev_comp.constraints)
             if self.value > 0:
                 next_constraint.max = prev_constraint.max - (
-                    self.col_0_setting - prev_constraint.min)
+                    self.col_0_setting - prev_constraint.min
+                )
             else:
                 offset = 0 if self.attr is AttributeType.COLOR else 1
                 min_prepruning = (next_constraint.min - offset) // 2
@@ -346,8 +378,10 @@ class Rules:
             for rule in comp_rules.all:
                 s += f"{rule!r}\n"
             if c == 0 and len(self) > 1:
-                s += f"\n\t----------- \\\\ {self[0].component_type.name} > {self[0].layout_type.name} // --- " + \
-                     f"// {self[1].component_type.name} > {self[1].layout_type.name} \\\\ -----------\n\n"
+                s += (
+                    f"\n\t----------- \\\\ {self[0].component_type.name} > {self[0].layout_type.name} // --- "
+                    + f"// {self[1].component_type.name} > {self[1].layout_type.name} \\\\ -----------\n\n"
+                )
         return s
 
 
@@ -361,19 +395,24 @@ class Ruleset:
     color_rules: Iterable[RuleType] = None
 
     def __post_init__(self):
-        for attr_rules in ("position_rules", "number_rules", "shape_rules",
-                           "size_rules", "color_rules"):
+        for attr_rules in (
+            "position_rules",
+            "number_rules",
+            "shape_rules",
+            "size_rules",
+            "color_rules",
+        ):
             rules = getattr(self, attr_rules)
             if rules is None:
                 validated_rules = []
             else:
-                validated_rules = tuple(rule for rule in rules
-                                        if rule in RuleType)
+                validated_rules = tuple(rule for rule in rules if rule in RuleType)
             if len(validated_rules) > 0:
                 setattr(self, attr_rules, validated_rules)
             else:
-                exclusions = {RuleType.ARITHMETIC
-                              } if attr_rules == "shape_rules" else set()
+                exclusions = (
+                    {RuleType.ARITHMETIC} if attr_rules == "shape_rules" else set()
+                )
                 setattr(self, attr_rules, tuple(set(RuleType) - exclusions))
 
     @staticmethod
@@ -388,24 +427,31 @@ class Ruleset:
             return DistributeThree(name, attr, params=None)
 
     def sample(self, component_and_layout_types):
-        assert (len(component_and_layout_types) == 1
-                or len(component_and_layout_types) == 2)
+        assert (
+            len(component_and_layout_types) == 1 or len(component_and_layout_types) == 2
+        )
         components_rules = []
         for component_type, layout_type in component_and_layout_types:
-            name, attr = (np.random.choice(self.position_rules),
-                          AttributeType.POSITION) if np.random.choice(
-                              (True, False)) else (np.random.choice(
-                                  self.number_rules), AttributeType.NUMBER)
+            name, attr = (
+                (np.random.choice(self.position_rules), AttributeType.POSITION)
+                if np.random.choice((True, False))
+                else (np.random.choice(self.number_rules), AttributeType.NUMBER)
+            )
             components_rules.append(
                 ComponentRules(
                     self.rule(
-                        name, AttributeType.CONFIGURATION
-                        if name is RuleType.CONSTANT else attr),
-                    self.rule(np.random.choice(self.shape_rules),
-                              AttributeType.SHAPE),
-                    self.rule(np.random.choice(self.size_rules),
-                              AttributeType.SIZE),
-                    self.rule(np.random.choice(self.color_rules),
-                              AttributeType.COLOR), component_type,
-                    layout_type))
+                        name,
+                        (
+                            AttributeType.CONFIGURATION
+                            if name is RuleType.CONSTANT
+                            else attr
+                        ),
+                    ),
+                    self.rule(np.random.choice(self.shape_rules), AttributeType.SHAPE),
+                    self.rule(np.random.choice(self.size_rules), AttributeType.SIZE),
+                    self.rule(np.random.choice(self.color_rules), AttributeType.COLOR),
+                    component_type,
+                    layout_type,
+                )
+            )
         return Rules(tuple(components_rules))
