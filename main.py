@@ -1,6 +1,7 @@
-from raven_gen import Matrix, MatrixType
-from datetime import datetime
 import os
+from datetime import datetime
+
+from raven_gen import Matrix, MatrixType
 
 matrix_types = [
     MatrixType.ONE_SHAPE,
