@@ -493,8 +493,7 @@ class Matrix:
         # Save the question image (with bottom-right cell replaced by "?")
         question_img = img.copy()
         from PIL import ImageDraw, ImageFont
-        import numpy as np
-        
+
         # Calculate the position of the bottom-right cell
         cell_size = image_size // 3
         x0, y0 = 2 * (cell_size + line_thickness), 2 * (cell_size + line_thickness)  # Third row, third column (0-based index 2,2)
